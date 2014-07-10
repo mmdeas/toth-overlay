@@ -15,484 +15,92 @@
   }
 
   window.onload = function() {
-  var $container = $('#container');
-  // initialize
-  $container.imagesLoaded(function () {
-    $container.masonry({
-      columnWidth: 264,
-      itemSelector: '.panel'
-    })
-  });
-  
-  var messages = [];
-  var hostname = 'http://'+document.location.hostname+':1337';
-  var socket = io.connect(hostname);
+    var $container = $('#container');
+    // initialize
+    $container.imagesLoaded(function () {
+      $container.masonry({
+        columnWidth: 264,
+        itemSelector: '.panel'
+      })
+    });
 
-  //*----- LINKS -----*//
-  
-  $('#showlinks').click(function() { sendMessage(socket, 'showlinks', ''); });
-  $('#hidelinks').click(function() { sendMessage(socket, 'hidelinks', ''); });
-  $('#pulselinks10').click(function() { sendMessage(socket, 'pulselinks', '10'); });
-  $('#pulselinks30').click(function() { sendMessage(socket, 'pulselinks', '30'); });
-  $('#pulselinks60').click(function() { sendMessage(socket, 'pulselinks', '60'); });
-        
-  //*----- ALERT -----*//
+    var messages = [];
+    var hostname = 'http://'+document.location.hostname+':1337';
+    var socket = io.connect(hostname);
 
-  $('#sendalert').click(function() { sendMessage(socket, 'showalert', $('#alertmessage').val()); });
-		
-  //*----- Lo3rd -----*//  
-  
-  $('#showlowerthird').click(function() { prepLowerThird(0); });
-  $('#hidelowerthird').click(function() { sendMessage(socket, 'hidelowerthird', ''); });
-  $('#pulselowerthird10').click(function() { prepLowerThird(10); });
-  $('#pulselowerthird30').click(function() { prepLowerThird(30); });
-  $('#pulselowerthird60').click(function() { prepLowerThird(60); });
-  
-  function prepLowerThird(number) {
-    var lowerthird = {'title': $('#lowerthirdtitle').val(), 'text': $('#lowerthirdtext').val(), 'duration': number};
-    var lowerthirdJSON = JSON.stringify(lowerthird);
-    
-    if (number > 0)
+    //*----- Rules -----*//
+
+    var rules = [
+                  ["Early first blood", 5],
+                  ["First blood", 3],
+                  ["Late first blood", 4],
+                  ["Kill", 1],
+                  ["T1 down", 1],
+                  ["T2 down", 2],
+                  ["T3 down", 3],
+                  ["T4 down", 4],
+                  ["Rax down", 3],
+                  ["Ancients killed", "the-number-required-to-finish-your-drink"],
+                  ["Roshan", 2],
+                  ["Aegis stolen/denied", 10],
+                  ["Fail-ult", 2],
+                  ["Shitty casting", 2],
+                  ["Deny", 3],
+                  ["Rapier bought", 10],
+                  ["Rapier dropped", 5],
+                  ["Gem dropped", 2],
+                  ["Crit > 1000", 1],
+                  ["Stuck on a cliff", "one-per-five-seconds"],
+                  ["Team wipe", 2],
+                  ["Kill streak ended", "killstreak-length"],
+                  ["Die-back", 5],
+                  ["Wasted DD", 5],
+                  ["Wasted haste", "waterfall"],
+                  ["Regen cancelled", 2],
+                  ["Regen cancelled by creep", 5],
+                  ["Illusion on spawn", 1],
+                  ["Denied by neutrals", 3],
+                  ["Killed by neutrals", 7],
+                  ["Viva Potato drinks", "everything"],
+                  ["Testing happens", "Henderson finishes the Absinthe"],
+                  ["Brewmaster crit", 1],
+                  ["Trombone", 1],
+                  ["Thunderclap", 1],
+                  ["Brewmaster Ult", "3 shots instead of"]
+                ]
+
+    //*----- Lo3rd -----*//
+    var total = 0;
+
+    function prepLowerThird(event) {
+      // sendMessage(socket, 'hidelowerthird');
+      var title = event.data.rule + "!";
+      if ($.isNumeric(event.data.sips))
+        total += event.data.sips;
+      var text = "Drink " + event.data.sips;
+      if (event.data.sips == 1)
+        text += " sip."
+      else
+        text += " sips."
+      text += " (" + total + " so far)";
+      var lowerthird = {'title': title, 'text': text, 'duration': 10};
+      var lowerthirdJSON = JSON.stringify(lowerthird);
       sendMessage(socket, 'pulselowerthird', lowerthirdJSON);
-    else
-      sendMessage(socket, 'showlowerthird', lowerthirdJSON);
-  }
-		
-  //*----- SCENE -----*//
-  
-  $('#refreshscenes').click(function() { requestScenes(); });
-  $('#scenebutton').click(function() { prepTransition('full'); });
-  $('#scenedropbutton').click(function() { prepTransition('inOnly'); });
-  $('#raiseshutters').click(function() { prepTransition('outOnly'); });
-  
-  var obsRemoteURL = 'ws://192.168.1.2:4444';
-  var obsSocket = new WebSocket(obsRemoteURL, "obsapi");
-  checkOBSSocket();
-  
-  function checkOBSSocket() {
-    //re-open the socket if it is not "OPEN" (1)
-    if (obsSocket.readyState != 1) {
-      obsSocket.close();
-      if ($('#obsip').val()) {
-        obsRemoteURL = 'ws://' + $('#obsip').val();
-      }      
-      obsSocket = new WebSocket(obsRemoteURL, "obsapi");
-      obsSocket.onopen = function (e) { requestScenes(); };
-      obsSocket.onmessage = function (e) {
-        var msgParsed = JSON.parse(e.data);
-        if (!msgParsed.scenes) {
-          return;
-        }
-        
-        var numScenes = msgParsed.scenes.length;
-        var options = $('#sceneselect').html();
-        var newoptions = "";
-        for (var i = 0; i < numScenes; i++) {
-          newoptions += "<option>"+ msgParsed.scenes[i].name +"</option>";
-        }   
-
-        //don't replace if nothing has changed
-        if (newoptions != options) {
-          $('#sceneselect').html(newoptions);
-        }
-      };
-      
-      console.log("[SCENE] re-opening OBS socket");
-      return true;
     }
-    
-    return false;
-  }
-  
-  function requestScenes() {
-    if (checkOBSSocket() == true) {
-      //the socket wasn't connected, so let's give it time to open
-      //it will call "requestScenes" automatically once it re-establishes
-      return;
-    } else {
-      //socket is already open, do the work immediately
-      doWork();
-    }
-    
-    function doWork() { 
-      var sceneRequest = {};
-      sceneRequest["request-type"] = "GetSceneList";
 
-      obsSocket.send(JSON.stringify(sceneRequest));
+    for (var i = 0; i < rules.length; i++)
+    {
+      var button = $('<button type="button">'+rules[i][0]+'</button>')
+      button.click({'rule': rules[i][0], 'sips': rules[i][1]}, prepLowerThird);
+      $('#lowerthird').append(button);
     }
   }
-  
-  function prepTransition(type, scene, rand) {   
-    //get new list of scenes
-    requestScenes();
-    
-    //get values from drop down select boxes
-    var anim = $('#transitionselect').find("option:selected").val();
-    scene = typeof scene !== 'undefined' ? scene : $('#sceneselect').find("option:selected").val();
-    
-    //pick a random anim if rand == true
-    rand = typeof rand !== 'undefined' ? rand : false;
-    if (rand == true) {
-      var max = 2 //number of anims
-      var min = 1;
-      switch (Math.floor(Math.random() * (max - min + 1)) + min) {
-        case 1:
-          anim = 'drop';
-          break;
-        case 2:
-          anim = 'angle';
-          break;
-      }
-    }
-
-    var msg = {'anim': anim, 'type': type, 'scene': scene};        
-    sendMessage(socket, 'transition', JSON.stringify(msg));              
-  }	
-		
-		//*----- STATS & BRACKET -----*//
-    
-    $('#showstatsbutton').click(function() { sendMessage(socket, 'showstats', $('#statsid').val()); });
-    $('#showbracketbutton').click(function() { sendMessage(socket,'showbracket', $('#bracketid').val()); });
-    
-    
-    //*----- SCOREBOARD -----*//
-    
-    $('#updatescores').click(function() { prepUpdateScores(); });
-    $('#swapteamcolors').click(function() { sendMessage(socket, 'swapteamcolors'); });
-   
-    function prepUpdateScores() {
-      var mapNum = $("input:radio[name=map]:checked").val();
-      var mapNames = {
-          "map1": $('#scoreboard > div.table > div:nth-child(2) > div:nth-child(1) > input').val(),
-          "map2": $('#scoreboard > div.table > div:nth-child(3) > div:nth-child(1) > input').val(),
-          "map3": $('#scoreboard > div.table > div:nth-child(4) > div:nth-child(1) > input').val()
-      };
-      var mapScores = {
-        "map1": 
-          {
-            "team1": $('#scoreboard > div.table > div:nth-child(2) > div:nth-child(2) > input').val(),
-            "team2": $('#scoreboard > div.table > div:nth-child(2) > div:nth-child(3) > input').val()
-          },
-        "map2": 
-          {
-            "team1": $('#scoreboard > div.table > div:nth-child(3) > div:nth-child(2) > input').val(),
-            "team2": $('#scoreboard > div.table > div:nth-child(3) > div:nth-child(3) > input').val()
-          },
-        "map3": 
-          {
-            "team1": $('#scoreboard > div.table > div:nth-child(4) > div:nth-child(2) > input').val(),
-            "team2": $('#scoreboard > div.table > div:nth-child(4) > div:nth-child(3) > input').val()
-          }
-      };                            
-      var teamNames = {
-        "team1": $('#team1name').val(),
-        "team2": $('#team2name').val()
-      };
-                      
-      var mapNamesJSON = JSON.stringify(mapNames);
-      var mapScoresJSON = JSON.stringify(mapScores);
-      var teamNamesJSON = JSON.stringify(teamNames);
-      
-      var sbData = {
-        "mapNum": mapNum, 
-        "mapNames": mapNames, 
-        "mapScores": mapScores, 
-        "teamNames": teamNames
-      };  
-      
-      sendMessage(socket, 'updatescore', JSON.stringify(sbData));
-    }  
-
-    //*----- ROSTERS -----*//
-    
-    var rosterSize = $("input:radio[name=rostersize]:checked").val();
-    $("input:radio[name=rostersize]").change(function() {
-        changeRosterSize();
-    });
-    
-    function changeRosterSize() {
-      rosterSize = $("input:radio[name=rostersize]:checked").val();
-      var content = '<div class="rosterrow row">' +
-                    '<div class="cell redteam"><input></div>' +
-                    '<div class="classicon"></div>' +
-                    '<div class="cell bluteam"><input></div></div>';
-      
-      for (var i = 0; i < rosterSize; i++) {
-        content += '<div class="rosterrow row">' +
-                   '<div class="cell"><input></div>' +
-                   '<div class="classicon"></div>' +
-                   '<div class="cell"><input></div></div>';
-        $('#rosters > div.table').html(content);
-      }
-      
-      //add class icons
-      if (rosterSize == 6) {
-        //scouts
-        $('#rostertable > div:nth-child(2) > div:nth-child(2)').css('background-position-y',-16*1);
-        $('#rostertable > div:nth-child(3) > div:nth-child(2)').css('background-position-y',-16*1);
-        //soldiers
-        $('#rostertable > div:nth-child(4) > div:nth-child(2)').css('background-position-y',-16*2);
-        $('#rostertable > div:nth-child(5) > div:nth-child(2)').css('background-position-y',-16*2);
-        //demo
-        $('#rostertable > div:nth-child(6) > div:nth-child(2)').css('background-position-y',-16*4);
-        //medic
-        $('#rostertable > div:nth-child(7) > div:nth-child(2)').css('background-position-y',-16*7);
-      } else {
-        for (var i = 1; i <= rosterSize+1; i++) {
-          $('#rostertable > div:nth-child('+i+') > div:nth-child(2)').css('background-position-y',-16*(i-1));
-        }  
-      }
-    }
-        
-    //initalize
-    changeRosterSize();
-    
-    $('#showrosters').click(function() { prepRosters(); });
-    $('#hiderosters').click(function() { sendMessage(socket, 'hiderosters', $("input:radio[name=rostersize]:checked").val()); });
-    $('#swaprosters').click(function() { swapRosters(); });
-      
-    function prepRosters() {
-      var redRoster = {};
-      var bluRoster = {};
-      var teamNames = { 'red': $('#rostertable > div:nth-child(1) > div.cell.redteam > input').val()
-                      , 'blu': $('#rostertable > div:nth-child(1) > div.cell.bluteam > input').val() };
-      
-      //start at 2 to compensate for table header row
-      for (var i = 2; i < rosterSize+2; i++) {
-          redRoster[i-2] = $('#rostertable > div:nth-child('+i+') > div:nth-child(1) > input').val();
-          bluRoster[i-2] = $('#rostertable > div:nth-child('+i+') > div:nth-child(3) > input').val();
-      }
-      
-      var rosterJSON = JSON.stringify({'redRoster': redRoster, 'bluRoster': bluRoster, 'teamNames': teamNames});
-      sendMessage(socket, 'showrosters', rosterJSON);
-    }
-      
-    function swapRosters() {            
-      for (var i = 1; i < rosterSize+2; i++) {
-        var temp;
-        temp = $('#rostertable > div:nth-child('+i+') > div:nth-child(1) > input').val();
-        $('#rostertable > div:nth-child('+i+') > div:nth-child(1) > input').val($('#rostertable > div:nth-child('+i+') > div:nth-child(3) > input').val());
-        $('#rostertable > div:nth-child('+i+') > div:nth-child(3) > input').val(temp);
-      }
-    }
-    
-    //*----- BRB -----*//
-    
-    $('#gotobrbscene').click(function() { prepTransition('full', 'toth2-brb', true); });
-    $('#showupnext').click(function() { sendMessage(socket, 'showupnext', $('#upnext').val()); });
-    $('#hideupnext').click(function() { sendMessage(socket, 'hideupnext', ''); });
-    $('#showcountdown').click(function() { sendMessage(socket, 'showcountdown', $('#countdown').val() + ':00'); });
-    $('#hidecountdown').click(function() { sendMessage(socket, 'hidecountdown', ''); });
-    
-    $('#countdown').datetimepicker({
-      datepicker:false,
-      format:'H:i'
-    });
-    
-    //*----- BG VIDEO -----*//
-    
-    $('#changebg').click(function() { sendMessage(socket, 'changebg', $('#bgselect').find("option:selected").val()); });
-  }    
  </script>
 </head>
 <body>
 <div id="wrapper">
 <div id="container">
-    <div class="panel">
-        <span class="heading">Social Media:</span>
-        <i class="fa fa-link"></i>
-        <div class="triplet"><div class="row">            
-            <div class="button"><button type="button" id="showlinks">Show</button></div>
-            <div class="button"><button type="button" id="pulselinks10">10s</button></div>
-            <div class="button"><button type="button" id="pulselinks30">30s</button></div>
-            <div class="button"> <button type="button" id="pulselinks60">60s</button></div>
-        </div></div>
-        <button type="button" id="hidelinks" class="hidebutton">Hide social media links</button><br />
-    </div>
-    
-    <div class="panel">
-        <span class="heading">Alert Msg:</span>
-        <i class="fa fa-bell-o"></i>
-        <input type="field" id="alertmessage" style="width:100%" />
-        <button type="button" id="sendalert">Send alert</button>
-    </div>
-    
-    <div class="panel">
-        <span class="heading">Scene Changing:</span>
-        <i class="fa fa-video-camera"></i>
-        <input type="field" id="obsip" style="width:100%" />
-        <div class="triplet"><div class="row"> 
-          <button type="button"id="refreshscenes">Refresh list</button>
-          <div class="button"><select id="sceneselect"></select></div>  
-        </div></div>  
-        <div class="button">Transition type: <select id="transitionselect">
-          <option>drop</option>
-          <option>angle</option>
-        </select></div>  
-        <div class="triplet"><div class="row">
-          <div class="button"><button type="button"id="scenebutton">Change scene (auto drop/raise)</button></div>
-          <div class="button"><button type="button"id="scenedropbutton">Change scene (drop only)</button></div>
-        </div></div>
-        <button type="button" id="raiseshutters" class="hidebutton">Raise Shutters</button>         
-    </div>
-    
-    <div class="panel">
-        <span class="heading">SizzlingStats ID:</span>
-        <i class="fa fa-bar-chart-o"></i>
-        <input type="field" id="statsid" style="width:100%" />
-        <button type="button" id="showstatsbutton">Update stats</button>
-        <span class="heading">Challonge Bracket ID:</span>
-        <input type="field" id="bracketid" style="width:100%" />
-        <button type="button" id="showbracketbutton">Update bracket</button>
-    </div>
-    
-    <div class="panel">
-        <span class="heading">Lowerthird Title:</span>
-        <i class="fa fa-info"></i>
-        <input type="field" id="lowerthirdtitle" style="width:100%" />
-        <span class="heading">Lowerthird Text:</span>
-        <input type="field" id="lowerthirdtext" style="width:100%" />
-        <div class="triplet"><div class="row"> 
-            <div class="button"><button type="button" id="showlowerthird">Show</button></div>
-            <div class="button"><button type="button" id="pulselowerthird10">10s</button></div>
-            <div class="button"><button type="button" id="pulselowerthird30">30s</button></div>
-            <div class="button"><button type="button" id="pulselowerthird60">60s</button></div>
-        </div></div>
-        <button type="button" id="hidelowerthird" class="hidebutton">Hide lowerthird</button>        
-    </div>
-    
-    <div class="panel" id="scoreboard">
-        <span class="heading">Scoreboard:</span>
-        <i class="fa fa-map-marker"></i>
-        <div class="triplet"><div class="row">
-            <div class="button">
-                <div class="subheading">Team 1 Name</div>
-                <input type="field" id="team1name" style="width:100%" />
-            </div>
-            <div class="button">
-                <div class="subheading">Team 2 Name</div>
-                <input type="field" id="team2name" style="width:100%" />
-            </div>
-        </div></div>
-        <div class="triplet"><div class="row"> 
-            <div class="button"><input type="radio" name="map" value="1" checked="checked">Map 1</div>
-            <div class="button"><input type="radio" name="map" value="2">Map 2</div>
-            <div class="button"><input type="radio" name="map" value="3">Map 3</div>
-        </div></div>
-        <div class="subheading">Maps</div>
-        <div class="table">
-            <div class="titlerow row" id="titlerow0">
-            <div class="rowtitle cell">Round 1</div>
-            <div class="rowtitle team1 cell red">Team 1</div>
-            <div class="rowtitle team2 cell blue">Team 2</div>
-            </div>
-            <div class="row maprow">
-                <div class="cell">
-                    <div class="currentmap selected">
-                        <i class="fa fa-chevron-right"></i>
-                    </div>
-                    <input>
-                </div>
-                <div class="cell">
-                    <input>
-                </div>
-                <div class="cell">
-                    <input>
-                </div>
-            </div>
-            <div class="row maprow">
-                <div class="cell">
-                    <div class="currentmap selected">
-                        <i class="fa fa-chevron-right"></i>
-                    </div>
-                    <input>
-                </div>
-                <div class="cell">
-                    <input>
-                </div>
-                <div class="cell">
-                    <input>
-                </div>
-            </div>
-            <div class="row maprow">
-                <div class="cell">
-                    <div class="currentmap selected">
-                        <i class="fa fa-chevron-right"></i>
-                    </div>
-                    <input>
-                </div>
-                <div class="cell">
-                    <input>
-                </div>
-                <div class="cell">
-                    <input>
-                </div>
-            </div>
-        </div>
-        <div class="triplet"><div class="row"> 
-          <div class="button"><button type="button" id="updatescores">Update scoreboard</button></div>
-          <div class="button"><button type="button" id="swapteamcolors">Swap team colors</button></div>
-        </div></div>
-    </div>
-    
-    <div class="panel" id="rosters">
-        <span class="heading">Roster Rundowns:</span>
-        <i class="fa fa-sort-amount-asc"></i>
-        <div class="triplet"><div class="row"> 
-            <div class="button"><input type="radio" name="rostersize" value="6" checked="checked">6v6</div>
-            <div class="button"><input type="radio" name="rostersize" value="9">9v9</div>
-        </div></div>
-        <div class="table" id="rostertable"></div>
-        <div class="triplet"><div class="row"> 
-          <div class="button"><button type="button" id="showrosters">Show Rosters</button></div>
-          <div class="button"><button type="button" id="swaprosters">Swap Rosters</button></div>
-          <div class="button"><button type="button" id="hiderosters" class="hidebutton">Hide rosters</button></div>
-        </div></div>
-    </div>
-    
-    <div class="panel" id="brb">
-      <span class="heading">BRB Scene:</span>
-      <i class="fa fa-clock-o"></i>
-      <button type="button" id="gotobrbscene">Go to BRB Scene</button> 
-      <span class="heading">Up Next:</span>
-      <input type="field" id="upnext" style="width:100%" />
-      <div class="triplet"><div class="row"> 
-        <div class="button"><button type="button" id="showupnext">Show Up Next</button></div>
-        <div class="button"><button type="button" id="hideupnext" class="hidebutton">Hide Up Next</button></div>
-      </div></div>
-      <span class="heading">Countdown:</span>
-      <input type="field" id="countdown" style="width:100%" />
-      <div class="triplet"><div class="row"> 
-        <div class="button"><button type="button" id="showcountdown">Show Countdown</button></div>
-        <div class="button"><button type="button" id="hidecountdown" class="hidebutton">Hide Countdown</button></div>
-      </div></div>
-    </div>
-
-  <div class="panel" id="bgvid">
-    <span class="heading">Background Video:</span>
-    <i class="fa fa-play"></i>
-    <div class="triplet"><div class="row">
-      <select id="bgselect">
-        <option>toth_bball.webm</option>
-        <option>toth_crate.webm</option>
-        <option>toth_dota.webm</option>
-        <option>toth_greatest.webm</option>
-        <option>toth_jump.webm</option>
-        <option>toth_mge.webm</option>
-        <option>toth_naeu6s.webm</option>
-        <option>toth_naeuhl.webm</option>
-        <option>toth_outro.webm</option>
-        <option>toth_pub.webm</option>
-        <option>toth_pub2.webm</option>
-        <option>toth_rand.webm</option>
-        <option>toth_rtd.webm</option>
-        <option>toth_stats.webm</option>
-        <option>toth_surf.webm</option>
-        <option>toth_ultiduo.webm</option>
-      </select>    
-      <div class="button"><button type="button" id="changebg">Change BG Vid</button></div>
-    </div></div>
-  </div>
+    <div class="panel" id="lowerthird"></div>
 </div>
 </div>
 </body>
