@@ -190,7 +190,17 @@ $(document).ready(function () {
 
   //*----- Lo3rd -----*//
 
+  var closeLowerThirdTimeoutID;
+  var lowerThirdIsShown = false;
+
   function showLowerThird (data) {
+    if (lowerThirdIsShown)
+    {
+      hideLowerThird(true);
+      setTimeout(showLowerThird, 400, data);
+      return 400;
+    }
+    lowerThirdIsShown = true;
     var msgParsed = JSON.parse(data.content);
     if (msgParsed.text && msgParsed.title) {
       // play sound
@@ -212,9 +222,16 @@ $(document).ready(function () {
           'left': '0%'
         }, 600, 'cubic-bezier(0.260, 0.860, 0.440, 0.985)');
     }
+    return 0;
   }
 
-  function hideLowerThird () {
+  function hideLowerThird (isSwap) {
+    if (closeLowerThirdTimeoutID)
+    {
+      clearTimeout(closeLowerThirdTimeoutID);
+      closeLowerThirdTimeoutID = undefined;
+    }
+    lowerThirdIsShown = false;
     // play sound
     $.ionSound.play("lowerthird_out");
 
@@ -227,16 +244,19 @@ $(document).ready(function () {
         'left': '-100%'
       }, 300, 'cubic-bezier(0.260, 0.860, 0.440, 0.985)');
 
-    $('#shape').delay(200)
-      .transition({
-        'left': '-190px'
-      }, 700, 'cubic-bezier(0.260, 0.860, 0.440, 0.985)');
+    if (typeof isSwap === "undefined" || isSwap === false)
+    {
+      $('#shape').delay(200)
+        .transition({
+          'left': '-190px'
+        }, 700, 'cubic-bezier(0.260, 0.860, 0.440, 0.985)');
+    }
   }
 
   function pulseLowerThird (data) {
     var msgParsed = JSON.parse(data.content);
-    showLowerThird(data);
-    setTimeout(hideLowerThird, (1000 * msgParsed.duration));
+    var extraTime = showLowerThird(data);
+    closeLowerThirdTimeoutID = setTimeout(hideLowerThird, (extraTime + 1000 * msgParsed.duration));
   }
 
   //*----- TRANSITION -----*//
