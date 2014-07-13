@@ -439,8 +439,8 @@ $(document).ready(function () {
     B = B + Math.floor((shade / 255) * B);
 
     var newColorInt = (R << 16) + (G << 8) + (B);
-    var newColorStr = "#" + newColorInt.toString(16);
-    
+    var newColorStr = "#" + ("000000" + newColorInt.toString(16)).slice(-6);
+
     return newColorStr;
   }
 
