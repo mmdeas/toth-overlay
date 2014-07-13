@@ -132,7 +132,7 @@
                   ["T3 down", 3],
                   ["T4 down", 4],
                   ["Rax down", 3],
-                  ["Ancients killed", "the-number-required-to-finish-your-drink"],
+                  ["Ancients killed", "Finish your drink!"],
                   ["Roshan", 2],
                   ["Aegis stolen/denied", 10],
                   ["Fail-ult", 2],
@@ -142,24 +142,23 @@
                   ["Rapier dropped", 5],
                   ["Gem dropped", 2],
                   ["Crit > 1000", 1],
-                  ["Stuck on a cliff", "one-per-five-seconds"],
+                  ["Stuck on a cliff", "Drink for every 5 seconds they are stuck."],
                   ["Team wipe", 2],
-                  ["Kill streak ended", "killstreak-length"],
+                  ["Kill streak ended", "Drink for each kill of the streak."],
                   ["Die-back", 5],
                   ["Wasted DD", 5],
-                  ["Wasted haste", "waterfall"],
+                  ["Haste", "Waterfall until they move."],
                   ["Regen cancelled", 2],
                   ["Regen cancelled by creep", 5],
                   ["Illusion on spawn", 1],
                   ["Denied by neutrals", 3],
                   ["Killed by neutrals", 7],
-                  ["Viva Potato drinks", "everything"],
-                  ["Testing happens", "Henderson finishes the Absinthe"],
+                  ["Viva Potato drinks", "You laugh as he drinks everything!"],
                   ["Brewmaster crit", 1],
                   ["Trombone", 1],
                   ["Thunderclap", 1],
-                  ["Brewmaster Ult", "3 shots instead of"],
-                  ["A Large Asteroid Has Joined The Stream", "one celebratory"]
+                  ["Brewmaster Ult", "Drink 3 (correctly coloured) shots!"],
+                  ["A Large Asteroid Has Joined The Stream", "Cheer and drink a bit!"]
                 ]
 
     //*----- Lo3rd -----*//
@@ -168,19 +167,25 @@
     function prepLowerThird(event) {
       // sendMessage(socket, 'hidelowerthird');
       var title = event.data.rule + "!";
+      var text;
       if ($.isNumeric(event.data.sips))
+      {
         total += event.data.sips;
-      var text = "Drink " + event.data.sips;
-      if (event.data.sips == 1)
-        text += " sip."
+        text = "Drink " + event.data.sips;
+        if (event.data.sips == 1)
+          text += " sip";
+        else
+          text += " sips";
+        text += " (" + total + " so far).";
+      }
       else
-        text += " sips."
-      text += " (" + total + " so far)";
-      var lowerthird = {'title': title, 'text': text, 'duration': 10};
+      {
+        text = event.data.sips;
+      }
+      var lowerthird = {'title': title, 'text': text, 'duration': 2};
       var lowerthirdJSON = JSON.stringify(lowerthird);
       sendMessage(socket, 'pulselowerthird', lowerthirdJSON);
     }
-
     for (var i = 0; i < rules.length; i++)
     {
       var button = $('<button type="button">'+rules[i][0]+'</button>')
