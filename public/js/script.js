@@ -111,7 +111,7 @@ $(document).ready(function () {
     $('#linktext').transition({
         'top': '-238px'
       }, 500, 'ease');
-      
+
     setTimeout(hideHat, 500);
     setTimeout(shrinkOut, 450);
 
@@ -260,24 +260,24 @@ $(document).ready(function () {
   }
 
   //*----- TRANSITION -----*//
-  
+
   var numSlices = 8;
   var currentAnim = '';
-  
+
   var obsRemoteURL = 'ws://localhost:4444';
   var obsSocket = new WebSocket(obsRemoteURL, "obsapi");
-  
+
   function playTransition (data) {
-    var msgParsed = JSON.parse(data.content);    
+    var msgParsed = JSON.parse(data.content);
     var anim = msgParsed.anim;
-    if (anim != '') { currentAnim = anim; }    
+    if (anim != '') { currentAnim = anim; }
     var type = msgParsed.type; //inOnly, outOnly, full
-    var scene = msgParsed.scene; 
-    
-    //set up json request for obs scene change             
+    var scene = msgParsed.scene;
+
+    //set up json request for obs scene change
     var msg = {"request-type": "SetCurrentScene", "scene-name": scene, "message-id": 1};
-    
-    if (anim == 'drop') {      
+
+    if (anim == 'drop') {
       if (type == 'inOnly') {
         dropIn();
       } else if (type == 'outOnly') {
@@ -285,8 +285,8 @@ $(document).ready(function () {
       }else if (type == 'full') {
         dropIn();
         setTimeout(dropOut, 1000);
-      }      
-    } else if (anim == 'angle') {      
+      }
+    } else if (anim == 'angle') {
       if (type == 'inOnly') {
         angleIn();
       } else if (type == 'outOnly') {
@@ -303,7 +303,7 @@ $(document).ready(function () {
         angleOut();
       }
     }
-    
+
     /* ANIMATION FUNCTIONS */
     // drop
     function dropInit() {
@@ -312,40 +312,40 @@ $(document).ready(function () {
       for (var i = 1; i <= numSlices; i++) {
         $('#shuttercontainer').append('<div id="shutter' + i +
           '" class="shutter"><img src="../img/logo_slices/logo_slice' + i + '.png"></div>');
-        var bgGradient = shadeColor("#f37424", -15 * (numSlices - i + 1)); //invert, dark to light
+        var bgGradient = shadeColor("#00A0FF", -15 * (numSlices - i + 1)); //invert, dark to light
+        console.log("bgGradient: " + bgGradient);
         $('#shutter' + i).css({
           'left': (1 / numSlices) * (i - 1) * 100 + "%",
           'background-color': shadeColor("#fdfdfe", -15 * i), //light to dark
-          'background-image': '-webkit-linear-gradient(top, rgba(255,205,40,0) 10%, ' + bgGradient +' 99%)'
+          'background-image': '-webkit-linear-gradient(top, rgba(255,205,40,0), ' + bgGradient +')'
         });
       }
     }
-    
+
     function dropIn () {
       inTrans = true;
       dropInit();
-    
+
       // play sound
-      $.ionSound.play("transition_drop_in");
-    
+      // $.ionSound.play("transition_drop_in");
+
       for (var i = 1; i <= numSlices; i++) {
         $('#shutter' + i).delay((i - 1) * 50)
           .transition({
-            'top': '0%',
-            'background-position-y': '0px'
+            'top': '0%'
           }, 400, 'ease-out')
       }
-      
+
       //trigger scene change in obs
       setTimeout(function(){
         obsSocket.send(JSON.stringify(msg));
       }, 800);
     }
-    
+
     function dropOut () {
       // play sound
       $.ionSound.play("transition_drop_out");
-      
+
       for (var i = 1; i <= numSlices; i++) {
         $('#shutter' + i).delay((i - 1) * 50)
           .transition({
@@ -356,14 +356,14 @@ $(document).ready(function () {
             'background-position-y': '7200px'
           }, 1)
       }
-      
+
       inTrans = false;
     }
-    
+
     //angle
     function angleInit() {
       //programmatically generate shutter slices
-      $('#shuttercontainer').html('');      
+      $('#shuttercontainer').html('');
       for (var i = 1; i <= numSlices; i++) {
         $('#shuttercontainer').append('<div id="shutter' + i + '" class="shutter"></div>');
         $('#shutter' + i).css({
@@ -376,41 +376,41 @@ $(document).ready(function () {
           '-webkit-mask': '-webkit-linear-gradient(top, black, black) no-repeat center top',
           '-webkit-mask-size': '100% 0%'
         });
-        
+
         //flip mask for every other shutter slice
         if (i % 2 == 0) {
           $('#shutter' + i).css({
             '-webkit-mask': '-webkit-linear-gradient(bottom, black, black) no-repeat center bottom',
             '-webkit-mask-size': '100% 0%'
           });
-        }      
+        }
       }
     }
-    
+
     function angleIn() {
       inTrans = true;
       angleInit();
-      
+
       // play sound
       $.ionSound.play("transition_angle_in");
-      
+
       for (var i = 1; i <= numSlices; i++) {
         console.log('animating ' + i);
         $('#shutter' + i).transition({
           '-webkit-mask-size': '100% 100%'
         }, 700, 'cubic-bezier(0.260, 0.860, 0.440, 0.985)');
       }
-      
+
       //animate center logo
       $('#logo').css('opacity', '100');
       $('#logo').removeClass('bounceOut');
-      $('#logo').addClass('animated bounceIn');      
-      $('#logo').on('webkitAnimationEnd', 
+      $('#logo').addClass('animated bounceIn');
+      $('#logo').on('webkitAnimationEnd',
       function() {
-        
+
         $('#logo').removeClass('bounceIn');
       });
-      
+
       //trigger scene change in obs
       setTimeout(function(){
         obsSocket.send(JSON.stringify(msg));
@@ -420,7 +420,7 @@ $(document).ready(function () {
     function angleOut() {
       // play sound
       $.ionSound.play("transition_angle_out");
-    
+
       for (var i = 1; i <= numSlices; i++) {
         //flip the masks so they transition out the other way
         if (i % 2 == 0) {
@@ -434,18 +434,18 @@ $(document).ready(function () {
             '-webkit-mask-size': '100% 100%'
           });
         }
-        
+
         $('#shutter' + i).transition({
           '-webkit-mask-size': '100% 0%'
         }, 700, 'cubic-bezier(0.56, 0.015, 0.74, 0.14)');
       }
-      
+
       //animate center logo
       $('#logo').addClass('animated bounceOut');
-      
+
       inTrans = false;
-    }    
-  }  
+    }
+  }
 
   function shadeColor (color, shade) {
     var colorInt = parseInt(color.substring(1), 16);
@@ -472,7 +472,7 @@ $(document).ready(function () {
       console.error("[updateRosters] Could not parse roster data!");
       return;
     }
-    
+
     var redRoster = msgParsed.redRoster;
     var bluRoster = msgParsed.bluRoster;
     var teamNames = msgParsed.teamNames;
@@ -483,7 +483,7 @@ $(document).ready(function () {
 
     // play sound
     $.ionSound.play("roster_in_" + rosterSize);
-    
+
     // "Barn door wipe" transition
     var duration = 324;
     $('#rosterheader').transition({
@@ -492,9 +492,9 @@ $(document).ready(function () {
     $('#rosterbody').transition({
       '-webkit-mask-size': '100% 100%'
     }, duration, 'linear');
-    
+
     $('#classicon').addClass('cs_grad_down');
-    
+
     // shoot out!
     for (var j = 1; j <= rosterSize; j++) {
       var step = duration / rosterSize;
@@ -515,7 +515,7 @@ $(document).ready(function () {
             'left': '0%',
           }, duration, 'ease-out');
           nxt(); // continue the queue
-        }); 
+        });
     }
   }
 
@@ -559,17 +559,17 @@ $(document).ready(function () {
       }
     }
   }
-  
+
   function hideRosters(data) {
     var rosterSize = parseInt(data.content);
     var duration = 324;
     var step = duration / rosterSize;
-    
+
     // play sound
     setTimeout(function () {
       $.ionSound.play("roster_out");
     }, step);
-    
+
     // shoot in!
     for (var j = 1; j <= rosterSize; j++) {
       $('#leftroster > div:nth-child(' + j + ')')
@@ -589,9 +589,9 @@ $(document).ready(function () {
             'left': '-100%',
           }, duration, 'ease-out');
           nxt(); // continue the queue
-        }); 
+        });
     }
-    
+
     // "Barn door wipe" transition
     $('#rosterheader')
       .delay(step * rosterSize)
@@ -603,7 +603,7 @@ $(document).ready(function () {
       .transition({
         '-webkit-mask-size': '100% 0%'
       }, duration, 'linear');
-    
+
     $('#classicon').removeClass('cs_grad_down');
   }
 });
