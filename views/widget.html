@@ -220,7 +220,7 @@
     {
       var kills = $('#killstreakcount').val();
       if (!$.isNumeric(kills))
-        return;
+        kills = $('#killstreakname')[0].selectedIndex + 3;
       kills = parseInt(kills, 10);
       event = {};
       event.data = {
@@ -228,6 +228,7 @@
         'sips': kills
         };
       prepLowerThird(event);
+      $('#killstreakcount').val('');
     });
   }
  </script>
@@ -240,6 +241,15 @@
       <button type="button" id="hastebutton">Haste</button>
       <button type="button" id="killstreakbutton">End killstreak</button>
       <input type="field" id="killstreakcount" style="width:100%" />
+      <select id="killstreakname">
+        <option>Killing Spree</option>
+        <option>Dominating</option>
+        <option>Mega Kill</option>
+        <option>Unstoppable</option>
+        <option>Wicked Sick</option>
+        <option>Monster Kill</option>
+        <option>Godlike</option>
+      </select>
     </div>
     <div class="panel">
         <span class="heading">Scene Changing:</span>
