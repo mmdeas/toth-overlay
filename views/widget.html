@@ -166,6 +166,8 @@
 
     function prepLowerThird(event) {
       // sendMessage(socket, 'hidelowerthird');
+      $('#hastebutton').css('background', 'rgba(0, 0, 0, 0)');
+      isHasteClicked = false;
       var title = event.data.rule + "!";
       var text;
       if ($.isNumeric(event.data.sips))
@@ -192,6 +194,41 @@
       button.click({'rule': rules[i][0], 'sips': rules[i][1]}, prepLowerThird);
       $('#lowerthird').append(button);
     }
+
+    // ----- Special rules -----
+    // Haste waterfall
+    var isHasteClicked = false;
+    $('#hastebutton').click(function()
+    {
+      isHasteClicked = !isHasteClicked;
+      if (isHasteClicked)
+      {
+        $('#hastebutton').css('background', 'red');
+        var lowerthird = {'title': 'Haste!', 'text': 'Waterfall until they move.'};
+        var lowerthirdJSON = JSON.stringify(lowerthird);
+        sendMessage(socket, 'showlowerthird', lowerthirdJSON);
+      }
+      else
+      {
+        $('#hastebutton').css('background', 'rgba(0, 0, 0, 0)');
+        sendMessage(socket, 'hidelowerthird', '');
+      }
+    });
+
+    // Killstreak end
+    $('#killstreakbutton').click(function()
+    {
+      var kills = $('#killstreakcount').val();
+      if (!$.isNumeric(kills))
+        return;
+      kills = parseInt(kills, 10);
+      event = {};
+      event.data = {
+        'rule': kills+"-kill streak ended",
+        'sips': kills
+        };
+      prepLowerThird(event);
+    });
   }
  </script>
 </head>
@@ -199,6 +236,11 @@
 <div id="wrapper">
 <div id="container">
     <div class="panel" id="lowerthird"></div>
+    <div class="panel" id="speciallowerthird">
+      <button type="button" id="hastebutton">Haste</button>
+      <button type="button" id="killstreakbutton">End killstreak</button>
+      <input type="field" id="killstreakcount" style="width:100%" />
+    </div>
     <div class="panel">
         <span class="heading">Scene Changing:</span>
         <i class="fa fa-video-camera"></i>
