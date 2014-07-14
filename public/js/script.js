@@ -209,7 +209,7 @@ $(document).ready(function () {
       $('#lowerthirdtitle').text('' + msgParsed.title.toUpperCase() + '');
       $('#lowerthirdtext').text('' + msgParsed.text + '');
 
-      $('#lowerthirdtitlecontainer').css('background-color', '#F37424')
+      $('#lowerthirdtitlecontainer').css('background-color', '#00A0FF')
         .transition({
           'left': '0%'
         }, 600, 'cubic-bezier(0.260, 0.860, 0.440, 0.985)');
@@ -327,7 +327,7 @@ $(document).ready(function () {
       dropInit();
 
       // play sound
-      // $.ionSound.play("transition_drop_in");
+      $.ionSound.play("transition_drop_in");
 
       for (var i = 1; i <= numSlices; i++) {
         $('#shutter' + i).delay((i - 1) * 50)
