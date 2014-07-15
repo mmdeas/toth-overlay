@@ -159,15 +159,12 @@ $(document).ready(function () {
         $.ionSound.play("alert_in-v2");
       }, 0);
 
-      $('#alerttext').text('' + data.content + '');
-      $('#alert').css('width', '18.5em');
-      $('#alerttitlecontainer').css('background-color', '#F37424');
+      $('#alerttext').html('<p style="margin:0;padding:0">' + data.content + '</p>');
+      $('#alert').css('width', '25em');
       setTimeout(function () {
-        $('#exclamation').css('opacity', '100');
-      }, 100);
-      setTimeout(function () {
-        $('#alerttextcontainer').css('height', '3.3em');
+        $('#alerttextcontainer').css('height', '100%');
       }, 400);
+      $('#alert').css('border-style', 'ridge');
       setTimeout(hideAlert, 7000);
     }
   }
@@ -180,12 +177,9 @@ $(document).ready(function () {
     setTimeout(function () {
       $('#alert').css('width', '0');
     }, 400);
-    setTimeout(function () {
-      $('#exclamation').css('opacity', '0');
-    }, 1000);
-    setTimeout(function () {
-      $('#alerttitlecontainer').css('background-color', '#ffcc28');
-    }, 2000);
+    setTimeout(function() {
+      $('#alert').css('border-style', 'none');
+  }, 800);
   }
 
   //*----- Lo3rd -----*//
@@ -313,7 +307,6 @@ $(document).ready(function () {
         $('#shuttercontainer').append('<div id="shutter' + i +
           '" class="shutter"><img src="../img/logo_slices/logo_slice' + i + '.png"></div>');
         var bgGradient = shadeColor("#00A0FF", -15 * (numSlices - i + 1)); //invert, dark to light
-        console.log("bgGradient: " + bgGradient);
         $('#shutter' + i).css({
           'left': (1 / numSlices) * (i - 1) * 100 + "%",
           'background-color': shadeColor("#fdfdfe", -15 * i), //light to dark

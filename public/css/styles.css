@@ -133,12 +133,16 @@ body {
 #alert {
   color: #f4f4f5;
   background-color: #f4f4f5;
+  border-color: #00A0FF;
+  border-width: 5px;
+  border-style: none;
   font-family: "AvenirLTStd-Medium",Helvetica,Arial,sans-serif;
   font-size:20px;
   line-height: 1.4em;
   position:absolute;
-  top:0;
-  left:0;
+  top:200px;
+  height: 100px;
+  right:0;
   width: 0px;
   transition: width 0.3s linear;
   -webkit-transition: width 0.3s linear;
@@ -182,12 +186,13 @@ body {
 }
 
 #alerttextcontainer {
+  color: #000000;
   background-color: #f4f4f5;
   overflow: hidden;
   height: 0px;
   transition: height 0.5s;
   -webkit-transition: height 0.5s;
-	color: black;
+  border-color: #00A0FF;
 }
 
 #alert .blue {

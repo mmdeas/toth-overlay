@@ -230,6 +230,12 @@
       prepLowerThird(event);
       $('#killstreakcount').val('');
     });
+
+    // ----- Info pop-out -----
+    $('#infobutton').click(function()
+    {
+      sendMessage(socket, 'showalert', $('#infotext').val().replace(/\n/gi, "<br />"));
+    })
   }
  </script>
 </head>
@@ -250,6 +256,10 @@
         <option>Monster Kill</option>
         <option>Godlike</option>
       </select>
+    </div>
+    <div class="panel" id="info">
+        <textarea id="infotext" style="width:100%;height:5em"></textarea>
+        <button type="button" id="infobutton">Info pop-out</button>
     </div>
     <div class="panel">
         <span class="heading">Scene Changing:</span>
