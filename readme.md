@@ -1,3 +1,6 @@
+Forked from langeh/toth-overlay.
+Original README:
+
 # TotH-Overlay
 This is the live graphics package used for [Tip of the Hats 2014](https://www.youtube.com/playlist?list=PLJUPqfTTJdNnxdK5YlAo3y2jQj188jl0_).
 
